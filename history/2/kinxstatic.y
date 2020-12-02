@@ -1,6 +1,21 @@
+%pure_parser
 
-%token IF ELSE FOR WHILE FUNCTION
-%token VAR NAME INT DBL ADDEQ SUBEQ MULEQ DIVEQ MODEQ INT_VALUE DBL_VALUE
+%token ERROR
+%token IF ELSE FOR WHILE FUNCTION RETURN
+%token ADDEQ SUBEQ MULEQ DIVEQ MODEQ EQEQ NEQ LEQ GEQ
+%token VAR NAME INT_TYPE DBL_TYPE INT_VALUE DBL_VALUE
+
+%{
+#include "lexer.h"
+
+#define YYPARSE_PARAM parsectx
+#define YYLEX_PARAM parsectx
+%}
+
+%union {
+    int64_t iv;
+    double dv;
+}
 
 %%
 
@@ -19,6 +34,7 @@ statement
     | if_statement
     | for_statement
     | while_statement
+    | return_statement
     | function_definition
     | block
     ;
@@ -50,8 +66,8 @@ type_info_Opt
     ;
 
 type_name
-    : INT
-    | DBL
+    : INT_TYPE
+    | DBL_TYPE
     ;
 
 initializer_Opt
@@ -68,13 +84,23 @@ expression
     ;
 
 assign_expression
+    : compare_expression
+    | assign_expression '=' compare_expression
+    | assign_expression ADDEQ compare_expression
+    | assign_expression SUBEQ compare_expression
+    | assign_expression MULEQ compare_expression
+    | assign_expression DIVEQ compare_expression
+    | assign_expression MODEQ compare_expression
+    ;
+
+compare_expression
     : add_sub_expression
-    | assign_expression '=' add_sub_expression
-    | assign_expression ADDEQ add_sub_expression
-    | assign_expression SUBEQ add_sub_expression
-    | assign_expression MULEQ add_sub_expression
-    | assign_expression DIVEQ add_sub_expression
-    | assign_expression MODEQ add_sub_expression
+    | compare_expression EQEQ add_sub_expression
+    | compare_expression NEQ add_sub_expression
+    | compare_expression '<' add_sub_expression
+    | compare_expression LEQ add_sub_expression
+    | compare_expression '>' add_sub_expression
+    | compare_expression GEQ add_sub_expression
     ;
 
 add_sub_expression
@@ -84,10 +110,20 @@ add_sub_expression
     ;
 
 mul_div_mod_expression
+    : postfix_expression
+    | mul_div_mod_expression '*' postfix_expression
+    | mul_div_mod_expression '/' postfix_expression
+    | mul_div_mod_expression '%' postfix_expression
+    ;
+
+postfix_expression
     : factor
-    | mul_div_mod_expression '*' factor
-    | mul_div_mod_expression '/' factor
-    | mul_div_mod_expression '%' factor
+    | postfix_expression '(' call_argument_list ')'
+    ;
+
+call_argument_list
+    : expression
+    | call_argument_list ',' expression
     ;
 
 factor
@@ -127,6 +163,10 @@ while_statement
     : WHILE '(' expression ')' statement
     ;
 
+return_statement
+    : RETURN expression ';'
+    ;
+
 function_definition
     : FUNCTION type_info_Opt NAME '(' argument_list ')' block
     ;
@@ -141,3 +181,8 @@ argument
     ;
 
 %%
+
+int yyerror()
+{
+    return 0;
+}

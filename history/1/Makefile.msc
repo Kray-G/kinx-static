@@ -1,0 +1,5 @@
+
+all: kxs.tab.c
+
+kxs.tab.c: kinxstatic.y
+	..\..\utility\kmyacc -v -d -b kxs kinxstatic.y

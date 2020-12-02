@@ -25,13 +25,17 @@
 | WHILE             | `while` の文字列を表す    |
 | FUNCTION          | `function` の文字列を表す |
 | VAR               | `var` の文字列を表す      |
-| INT               | `int` の文字列を表す      |
-| DBL               | `dbl` の文字列を表す      |
+| INT_TYPE          | `int` の文字列を表す      |
+| DBL_TYPE          | `dbl` の文字列を表す      |
 | ADDEQ             | `+=` の文字列を表す       |
 | SUBEQ             | `-=` の文字列を表す       |
 | MULEQ             | `*=` の文字列を表す       |
 | DIVEQ             | `/=` の文字列を表す       |
 | MODEQ             | `%=` の文字列を表す       |
+| EQEQ              | `==` の文字列を表す       |
+| NEQ               | `!=` の文字列を表す       |
+| LEQ               | `<=` の文字列を表す       |
+| GEQ               | `>=` の文字列を表す       |
 | NAME              | 変数名を表す              |
 | INT_VALUE         | 整数値を表す              |
 | DBL_VALUE         | 実数値を表す              |
@@ -197,8 +201,8 @@ type_info_Opt
     ;
 
 type_name
-    : INT
-    | DBL
+    : INT_TYPE
+    | DBL_TYPE
     ;
 
 initializer_Opt
@@ -211,7 +215,7 @@ initializer_Opt
 
 `/* empty */` は何も書かなくても良いのですが、コメント形式で書いておくことによって空集合も `type_info_Opt` や `initializer_Opt` に収斂させていくことができるようになります。これはつまり、**省略を許容する** ことを意味します。無くても文法上間違いではない、ということです。
 
-現時点で型として認識するものは `INT` と `DBL` のみです。これはレキサーが `int`、`dbl` を認識したときに返ってくる値です。
+現時点で型として認識するものは `INT_TYPE` と `DBL_TYPE` のみです。これはレキサーが `int`、`dbl` を認識したときに返ってくる値です。
 
 ### 式文（代入文を含む）
 
@@ -222,8 +226,10 @@ initializer_Opt
 | 優先度 |         内容         |              演算子               | 評価  |
 | :----: | :------------------- | :-------------------------------- | :---- |
 |   高   | 要素                 | 変数名、整数値(int)、実数値(dbl)  | -     |
-|   ↑    | 乗算、除算、剰余演算 | `*`、`/`、`%`                     | 左→右 |
-|   ↓    | 加算、減算           | `+`、`-`                          | 左→右 |
+|   ↑    | 後置演算子           | `(args)`:関数呼び出し             | 左→右 |
+|   │    | 乗算、除算、剰余演算 | `*`、`/`、`%`                     | 左→右 |
+|   │    | 加算、減算           | `+`、`-`                          | 左→右 |
+|   ↓    | 比較演算             | `==`、`!=`、`<`、`<=`、`>`、`>=`  | 左→右 |
 |   低   | 代入                 | `=`、`+=`、`-=`、`*=`、`/=`、`%=` | 右→左 |
 
 この優先順位に従って BNF を書くと以下の通りになります。出発地点は `expression_statement` です。式文も `';'` で終ります。表現にもだいぶ慣れてきたと思いますので、一気に行きましょう。なお、代入文も左再帰の形で書いていますが、AST（Abstract Syntax Tree = 抽象構文木）を作成する際に右再帰のツリー構造として組めば問題ありません[^rrec]。
@@ -240,13 +246,23 @@ expression
     ;
 
 assign_expression
+    : compare_expression
+    | assign_expression '=' compare_expression
+    | assign_expression ADDEQ compare_expression
+    | assign_expression SUBEQ compare_expression
+    | assign_expression MULEQ compare_expression
+    | assign_expression DIVEQ compare_expression
+    | assign_expression MODEQ compare_expression
+    ;
+
+compare_expression
     : add_sub_expression
-    | assign_expression '=' add_sub_expression
-    | assign_expression ADDEQ add_sub_expression
-    | assign_expression SUBEQ add_sub_expression
-    | assign_expression MULEQ add_sub_expression
-    | assign_expression DIVEQ add_sub_expression
-    | assign_expression MODEQ add_sub_expression
+    | compare_expression EQEQ add_sub_expression
+    | compare_expression NEQ add_sub_expression
+    | compare_expression '<' add_sub_expression
+    | compare_expression LEQ add_sub_expression
+    | compare_expression '>' add_sub_expression
+    | compare_expression GEQ add_sub_expression
     ;
 
 add_sub_expression
@@ -256,10 +272,20 @@ add_sub_expression
     ;
 
 mul_div_mod_expression
+    : postfix_expression
+    | mul_div_mod_expression '*' postfix_expression
+    | mul_div_mod_expression '/' postfix_expression
+    | mul_div_mod_expression '%' postfix_expression
+    ;
+
+postfix_expression
     : factor
-    | mul_div_mod_expression '*' factor
-    | mul_div_mod_expression '/' factor
-    | mul_div_mod_expression '%' factor
+    | postfix_expression '(' call_argument_list ')'
+    ;
+
+call_argument_list
+    : expression
+    | call_argument_list ',' expression
     ;
 
 factor
@@ -465,155 +491,10 @@ argument
 
 ## BNF 全体と yacc によるパーサー生成
 
-ここまでで、`kinxstatic.y` ファイルとして保存して yacc（または bison）にかけてみましょう。私は色んな意味で `kmyacc` を使います。理由は [こちら](https://qiita.com/Kray-G/items/c77f2d5401c31290bfcd)。
+ここまでで、`kinxstatic.y` ファイルとして保存して yacc（または bison）にかけてみましょう。
+ファイルは [Github](https://github.com/Kray-G/kinx-static/blob/main/history/1/kinxstatic.y) に格納してあります。
 
-<details><summary>`kinxstatic.y`</summary><div>
-
-<pre><code>%token IF ELSE FOR WHILE FUNCTION
-%token VAR NAME INT DBL ADDEQ SUBEQ MULEQ DIVEQ MODEQ INT_VALUE DBL_VALUE
-
-%%
-
-program
-    : statement_list
-    ;
-
-statement_list
-    : statement
-    | statement_list statement
-    ;
-
-statement
-    : declaration_statement
-    | expression_statement
-    | if_statement
-    | for_statement
-    | while_statement
-    | function_definition
-    | block
-    ;
-
-block
-    : '{' statement_list '}'
-    ;
-
-declaration_statement
-    : var_declaration ';'
-    ;
-
-var_declaration
-    : VAR declaration_list
-    ;
-
-declaration_list
-    : declaration_expression
-    | declaration_list ',' declaration_expression
-    ;
-
-declaration_expression
-    : NAME type_info_Opt initializer_Opt
-    ;
-
-type_info_Opt
-    : /* empty */
-    | ':' type_name
-    ;
-
-type_name
-    : INT
-    | DBL
-    ;
-
-initializer_Opt
-    : /* empty */
-    | '=' expression
-    ;
-
-expression_statement
-    : expression ';'
-    ;
-
-expression
-    : assign_expression
-    ;
-
-assign_expression
-    : add_sub_expression
-    | assign_expression '=' add_sub_expression
-    | assign_expression ADDEQ add_sub_expression
-    | assign_expression SUBEQ add_sub_expression
-    | assign_expression MULEQ add_sub_expression
-    | assign_expression DIVEQ add_sub_expression
-    | assign_expression MODEQ add_sub_expression
-    ;
-
-add_sub_expression
-    : mul_div_mod_expression
-    | add_sub_expression '+' mul_div_mod_expression
-    | add_sub_expression '-' mul_div_mod_expression
-    ;
-
-mul_div_mod_expression
-    : factor
-    | mul_div_mod_expression '*' factor
-    | mul_div_mod_expression '/' factor
-    | mul_div_mod_expression '%' factor
-    ;
-
-factor
-    : NAME
-    | INT_VALUE
-    | DBL_VALUE
-    | '(' expression ')'
-    ;
-
-if_statement
-    : IF '(' expression ')' statement else_clause_Opt
-    ;
-
-else_clause_Opt
-    : /* empty */
-    | ELSE statement
-    ;
-
-for_statement
-    : FOR
-      '(' for_expression1_Opt ';' for_expression2_Opt ';' for_expression2_Opt ')'
-      statement
-    ;
-
-for_expression1_Opt
-    : /* empty */
-    | expression
-    | var_declaration
-    ;
-
-for_expression2_Opt
-    : /* empty */
-    | expression
-    ;
-
-while_statement
-    : WHILE '(' expression ')' statement
-    ;
-
-function_definition
-    : FUNCTION type_info_Opt NAME '(' argument_list ')' block
-    ;
-
-argument_list
-    : argument
-    | argument_list ',' argument
-    ;
-
-argument
-    : NAME type_info_Opt
-    ;
-
-%%
-</code></pre>
-
-</div></details>
+私は色んな意味で `kmyacc` を使います。理由は [【こちら】](https://qiita.com/Kray-G/items/c77f2d5401c31290bfcd)。
 
 では、yacc を使ってパーサーを作ってみましょう。ちゃんとできるかな？
 

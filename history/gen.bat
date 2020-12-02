@@ -15,6 +15,12 @@ if exist kinxstatic.y (
     ..\..\utility\kmyacc -v -d -b kxs kinxstatic.y
 )
 
+if exist Makefile.msc (
+    echo make.
+    nmake -f Makefile.msc
+    if exist kiss.exe copy kiss.exe ..
+)
+
 REM Exit.
 cd ..
 exit /b 0
