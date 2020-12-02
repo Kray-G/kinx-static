@@ -1,32 +1,18 @@
 # はじめに
 
-**「見た目は JavaScript、頭脳(中身)は Ruby、（安定感は AC/DC）」** でお届けしているスクリプト言語 [Kinx](https://github.com/Kray-G/kinx)。Kinx-Static 実装編。今回は AST を作ります。
+**「見た目は JavaScript、頭脳(中身)は Ruby、（安定感は AC/DC）」** でお届けしているスクリプト言語 [Kinx](https://github.com/Kray-G/kinx)。Kinx-Static 実装編。今回はレキサーを作ります。
 
 * 参考
-    * 最初の動機 ... [スクリプト言語 KINX（ご紹介）](https://qiita.com/Kray-G/items/ca08b6fb40d15dd0ec76)
-        * 個別記事へのリンクは全てここに集約してあります。
     * リポジトリ ... https://github.com/Kray-G/kinx
         * Pull Request 等お待ちしております。
-    * リポジトリ ... https://github.com/Kray-G/kinx-static
-        * Kinx-Static のリポジトリができました。
 
-ところで現時点で Kinx と Kinx-Static に接点がありません。Kinx-Static の成果を Kinx にマージできないかと思案しています。
+# lexer（レキサー、字句解析器）
 
-# AST - Abstract Syntax Tree（抽象構文木）
+前回、BNF を定義してパーサージェネレーターでパーサーが作れそうなところまで行きました。今回は、パーサーが動かせるようにレキサーを作ります。
 
-前回、BNF を定義してパーサージェネレーターでパーサーが作れそうなところまで行きました。今回は、そこから AST を作ります。
+## トークン
 
-## AST とは
-
-Abstract Syntax Tree、日本語では抽象構文木と言います。構文解析をした後、その結果をツリーとして構築したデータ構造のことです。詳しくは以下の Wikipedia へ。
-
-* https://ja.wikipedia.org/wiki/抽象構文木
-
-## lexer（レキサー、字句解析器）
-
-### トークン
-
-AST を作る前に、レキサー（字句解析器）が必要ですね。でないとパーサーへのインプットがありません。レキサーが返すトークンは、以下の通りです。
+パーサーを動かすにはレキサー（字句解析器）が必要ですね。でないとパーサーへのインプットがありません。レキサーが返すトークンは、以下の通りです。
 
 |     トークン      |           内容            |
 | :---------------- | :------------------------ |
@@ -87,11 +73,11 @@ extern YYSTYPE yylval;
 
 今後の実装で変化していきますが、一先ずレキサーはこのヘッダを include することが可能です。
 
-### 実装
+## 実装
 
 レキサーの実装をしていきましょう。
 
-#### トークナイズ戦略
+### トークナイズ戦略
 
 字句解析は手書きでも難しくないので、変にライブラリやジェネレーターは使わずに、以下のやり方で行います。
 
@@ -107,7 +93,7 @@ extern YYSTYPE yylval;
         * 予約語 ... IF などのトークンを返す
         * その他 ... NAME を返す
 
-#### yylval
+### yylval
 
 レキサーからパーサーに渡せる値はトークンだけではありません。例えば、INT_VALUE のときの実際の数値情報なども渡せなければなりません。そのために yylval という共用体を使います。
 
@@ -119,6 +105,43 @@ extern YYSTYPE yylval;
     double dv;
 }
 ```
+`kxs.tab.h` は以下のように変わります。共用体の型が `YYSTYPE` として定義されました。
+
+```c
+typedef union
+{
+    int64_t iv;
+    double dv;
+}
+YYSTYPE;
+extern YYSTYPE yylval;
+
+#define YYERRTOK 256
+#define ERROR 257
+#define IF 258
+#define ELSE 259
+#define FOR 260
+#define WHILE 261
+#define FUNCTION 262
+#define RETURN 263
+#define ADDEQ 264
+#define SUBEQ 265
+#define MULEQ 266
+#define DIVEQ 267
+#define MODEQ 268
+#define EQEQ 269
+#define NEQ 270
+#define LEQ 271
+#define GEQ 272
+#define VAR 273
+#define NAME 274
+#define INT_TYPE 275
+#define DBL_TYPE 276
+#define INT_VALUE 277
+#define DBL_VALUE 278
+```
+
+### yylex
 
 yacc ではレキサーからのインタフェースは `yylex` という関数名でアクセスされるので、yylex 関数を定義します。
 
@@ -160,7 +183,7 @@ typedef struct kxs_parsectx_t_ {
 
 パーサーのコンテキストを保持するパラメータの中にレキサーのコンテキストを含めておきます。パーサーのコンテキストには現在処理しているファイル名と行番号を保持できるようにしておきます。
 
-#### yyerror
+### yyerror
 
 パーサーはエラー発生時に `yyerror` という関数を呼びます。一先ず以下のように定義しておきます。定義場所は、.y ファイルの 2 つ目の `%%` より下の部分に記載します。この場所に記載することで、生成された C ソースの一番下にそのまま追加されます。
 
@@ -175,7 +198,7 @@ int yyerror(const char *format, ...)
 }
 ```
 
-#### ソースコード
+### ソースコード
 
 さて、ソースコードとして整えたファイルは以下にあります。
 
@@ -183,7 +206,7 @@ int yyerror(const char *format, ...)
 * [lexer.c](https://github.com/Kray-G/kinx-static/blob/main/history/2/lexer.c)
 * [lexer.h](https://github.com/Kray-G/kinx-static/blob/main/history/2/lexer.h)
 
-#### お試し
+### お試し
 
 ここまで用意できると、文法が正しく受理されるかどうかを確認できます。トレースを出力するように設定して動作させてみましょう。
 トレース機能を ON にするには、`YYDEBUG` マクロを 1 にしてコンパイルし、yydebug を 1 にして実行することで可能です。
@@ -218,7 +241,7 @@ int main(int ac, char **av)
 }
 ```
 
-実行ファイル名は悩んだ挙句 `kiss` にしてあります。んー。**Ki**nx **S**tatic & **S**ubset の略です。
+実行ファイル名は悩んだ挙句 `kiss` にしてあります。んー。**Ki**nx **S**tatic **S**ubset の略です。
 `sample.kxs` というファイルを作って実行してみます。`sample.kxs` は以下のようなフィボナッチ関数です。
 
 ```javascript
@@ -262,7 +285,7 @@ $ ./kiss sample.kxs
 
 `Accepted.` と出れば、正しくパースできたことを意味します。
 
-#### エラー処理
+### エラー処理
 
 簡単なエラー処理だけ入れておきましょう。通常、エラーが発生してもある程度復帰して、なるべく多くのエラーを一気に出しておきたいところです。このような場合に良く使われるのが **パニックモード** と呼ばれる方法です。パニックモードでは、例えば `';'` などの特定のトークンが現れるまで読み捨てることで復旧を試みます。yacc では error という特別なトークンを用いて実現が可能です。
 
@@ -284,11 +307,8 @@ statement
 
 これによって、エラーが発生した場合、その時点からトークンが読み飛ばされ、';' が出現した時点で `statement` に reduce されます。色々なケースを考えるとこれだけでは不十分なのですが、一番簡単な方法としてまずはこれで良いでしょう。
 
-## AST の作成
-
-### Node
-
-
 # おわりに
 
+レキサーを実装したことでパーサーが動き始めました。このように少しずつでも動作しているものを拡張していくほうが楽しいですね。次はパーサーの出力として AST を作るところまで行きましょう。
 
+ではまた。

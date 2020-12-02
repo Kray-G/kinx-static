@@ -1,6 +1,6 @@
 # はじめに
 
-**「見た目は JavaScript、頭脳(中身)は Ruby、（安定感は AC/DC）」** でお届けしているスクリプト言語 [Kinx](https://github.com/Kray-G/kinx)。Kinx-Static 実装編。今回は BNF を定義します。
+**「見た目は JavaScript、頭脳(中身)は Ruby、（安定感は AC/DC）」** でお届けしているスクリプト言語 [Kinx](https://github.com/Kray-G/kinx)。Kinx-Static 実装編。今回はパーサーを作ります。具体的には BNF を定義します。
 
 * 参考
     * リポジトリ ... https://github.com/Kray-G/kinx
