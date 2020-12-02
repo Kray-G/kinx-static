@@ -48,7 +48,7 @@ static int get_token_of_keyword(const char *buf)
 #define LEX_BUFMAX (256)
 int yylex(YYSTYPE *yylval, kxs_parsectx_t *parsectx)
 {
-    kxs_lexctx_t *lexctx = ((kxs_parsectx_t*)parsectx)->lexctx;
+    kxs_lexctx_t *lexctx = &(parsectx->lexctx);
     int ch = lex_curr(lexctx);
 
     // skip whitespaces.

@@ -1,5 +1,5 @@
 CFLAGS=/c /O2 /DYYDEBUG=1
-KMYACCOPT=-v -d -b kxs -t
+KMYACCOPT=-v -d -b kxs
 
 all: kiss.exe
 

@@ -45,24 +45,31 @@ This section shows a rough design of Kinx-Static.
 
 * just a document.
 
-### [1. BNF definition](history/1)
+### [1. Parser - BNF definition](history/1)
 
 You will be able to define your language as BNF style.
 This time it is written in the file format of yacc/bison.
 
 * introduced `kinxstatic.y` and `kmyacc.exe`/`kmyacc`.
 
-### 2. Building AST
+### 2. Lexer - Hand made lexer
 
 You will be able to write a lexer.
-And you will be able to build AST, which means Abstract Syntax Tree, by combining between a lexer and a parser.
+And you will be able to parse a source code of your language by combining between a lexer and a parser.
+
+* introduced `lexer.c` and `lexer.h`.
+* modified `kinxstatic.y`.
+* `main.c` for temporary use.
+
+### 3. Building AST
+
+You will be able to build AST, which means Abstract Syntax Tree, by combining between a lexer and a parser.
 AST is a tree and it will be generated as a tree of `ast_node` object.
 
-* introduced `lexer.c`.
 * introduced `ast_node.c` and `ast_node.h`.
 * modified `kinxstatic.y`.
 
-### 3. Generating Code
+### 4. Generating Code
 
 MIR supports an execution directly from C source code.
 This means, only you have to do is to translate AST to pure C source code.
@@ -70,13 +77,13 @@ This means, only you have to do is to translate AST to pure C source code.
 * introduced `string.c` and `string.h`.
 * introduced `gencode.c`.
 
-### 4. Integration with MIR
+### 5. Integration with MIR
 
 To execute it, let's pass the generated C source code to MIR compiler and executor.
 
 * introduced `execute.c`.
 * introduced MIR backend.
 
-### 5. More Features
+### 6. More Features
 
 I will continue to update Kinx-Static with ...

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 typedef struct kxs_lexctx_t_ {
     int ch;
@@ -9,5 +10,5 @@ typedef struct kxs_lexctx_t_ {
 } kxs_lexctx_t;
 
 typedef struct kxs_parsectx_t_ {
-    kxs_lexctx_t *lexctx;
+    kxs_lexctx_t lexctx;
 } kxs_parsectx_t;

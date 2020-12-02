@@ -37,6 +37,7 @@ statement
     | return_statement
     | function_definition
     | block
+    | error ';'
     ;
 
 block
@@ -182,7 +183,11 @@ argument
 
 %%
 
-int yyerror()
+int yyerror(const char *format, ...)
 {
+    va_list ap;
+    va_start(ap, format);
+    vprintf(format, ap);
+    va_end(ap);
     return 0;
 }

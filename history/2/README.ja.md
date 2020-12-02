@@ -124,16 +124,20 @@ yacc ではレキサーからのインタフェースは `yylex` という関数
 
 また、YYLEX_PARAM マクロを定義しておくと yylex 関数に引数を渡せます。ここでは kxs_parsectx_t 型へのポインタを受け取るようにしておきます。ここには次の読み込み用のパラメータなどを保持できるようにしておき、`lex_curr(ctx)` で現在の文字を、`lex_next(ctx)` で次の文字にフェッチできるものとします。
 
+尚、引数を受け取るようにする場合、.y ファイルに `%pure_parser` という指定をしておく必要があります。
+
 ```c
-int yylex(kxs_parsectx_t *lexctx)
+int yylex(kxs_parsectx_t *parsectx)
 {
     ...
 }
 ```
 
-kxs_lexctx_t 型、kxs_parsectx_t 型の定義は .y ファイルの最初の `%%` より前に以下のように記載します。
+kxs_lexctx_t 型、kxs_parsectx_t 型の定義は .y ファイルの最初の `%%` より前に以下のように記載します。また、`%pure_parser` の指定もしておきます。
 
 ```bison
+%pure_parser
+
 %{
 #include <stdint.h>
 #include <stdio.h>
@@ -144,7 +148,9 @@ typedef struct kxs_lexctx_t_ {
 } kxs_lexctx_t;
 
 typedef struct kxs_parsectx_t_ {
-    kxs_lexctx_t *lexctx;
+    kxs_lexctx_t lexctx;
+    char *file;
+    int line
 } kxs_parsectx_t;
 
 #define YYPARSE_PARAM parsectx
@@ -152,14 +158,131 @@ typedef struct kxs_parsectx_t_ {
 %}
 ```
 
-パーサーのコンテキストを保持するパラメータの中にレキサーのコンテキストを含めておきます。
+パーサーのコンテキストを保持するパラメータの中にレキサーのコンテキストを含めておきます。パーサーのコンテキストには現在処理しているファイル名と行番号を保持できるようにしておきます。
+
+#### yyerror
+
+パーサーはエラー発生時に `yyerror` という関数を呼びます。一先ず以下のように定義しておきます。定義場所は、.y ファイルの 2 つ目の `%%` より下の部分に記載します。この場所に記載することで、生成された C ソースの一番下にそのまま追加されます。
+
+```c
+int yyerror(const char *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    vprintf(format, ap);
+    va_end(ap);
+    return 0;
+}
+```
 
 #### ソースコード
 
 さて、ソースコードとして整えたファイルは以下にあります。
 
+* [kinxstatic.y](https://github.com/Kray-G/kinx-static/blob/main/history/2/kinxstatic.y)
 * [lexer.c](https://github.com/Kray-G/kinx-static/blob/main/history/2/lexer.c)
 * [lexer.h](https://github.com/Kray-G/kinx-static/blob/main/history/2/lexer.h)
+
+#### お試し
+
+ここまで用意できると、文法が正しく受理されるかどうかを確認できます。トレースを出力するように設定して動作させてみましょう。
+トレース機能を ON にするには、`YYDEBUG` マクロを 1 にしてコンパイルし、yydebug を 1 にして実行することで可能です。
+
+簡易的な main 関数を以下のように定義して使ってみましょう。
+
+```c
+#include "lexer.h"
+
+extern int yyparse(kxs_parsectx_t *);
+extern int yydebug;
+
+int main(int ac, char **av)
+{
+    if (ac != 2) {
+        return 1;
+    }
+
+    kxs_parsectx_t parsectx;
+    parsectx.lexctx.fp = fopen(av[1], "r");
+    if (!parsectx.lexctx.fp) {
+        return 1;
+    }
+
+    #if YYDEBUG == 1
+    yydebug = 1;
+    #endif
+    parsectx.lexctx.ch = ' ';
+    int r = yyparse(&parsectx);
+
+    return 0;
+}
+```
+
+実行ファイル名は悩んだ挙句 `kiss` にしてあります。んー。**Ki**nx **S**tatic & **S**ubset の略です。
+`sample.kxs` というファイルを作って実行してみます。`sample.kxs` は以下のようなフィボナッチ関数です。
+
+```javascript
+function fib(n) {
+    if (n < 3) return n;
+    return fib(n-2) + fib(n-1);
+}
+
+return fib(34);
+```
+
+これを実行してみましょう。
+
+```
+$ ./kiss sample.kxs
+%% State 0, Lookahead --none--
+%% Reading FUNCTION
+%% Shift FUNCTION
+%% State 58, Lookahead --none--
+%% Reading NAME
+%% Reduce by (18) type_info_Opt : /* empty */
+%% State 73, Lookahead NAME
+%% Shift NAME
+%% State 80, Lookahead --none--
+%% Reading '('
+%% Shift '('
+%% State 57, Lookahead --none--
+...
+%% Reduce by (25) expression : assign_expression
+%% State 74, Lookahead ';'
+%% Shift ';'
+%% Reduce by (65) return_statement : RETURN expression ';'
+%% Reduce by (9) statement : return_statement
+%% Reduce by (3) statement_list : statement_list statement
+%% State 3, Lookahead --none--
+%% Reading $EOF
+%% Reduce by (1) program : statement_list
+%% State 69, Lookahead $EOF
+%% Accepted.
+```
+
+`Accepted.` と出れば、正しくパースできたことを意味します。
+
+#### エラー処理
+
+簡単なエラー処理だけ入れておきましょう。通常、エラーが発生してもある程度復帰して、なるべく多くのエラーを一気に出しておきたいところです。このような場合に良く使われるのが **パニックモード** と呼ばれる方法です。パニックモードでは、例えば `';'` などの特定のトークンが現れるまで読み捨てることで復旧を試みます。yacc では error という特別なトークンを用いて実現が可能です。
+
+`statement` の定義を以下のように書き換えます。
+
+```nbnf
+statement
+    : declaration_statement
+    | expression_statement
+    | if_statement
+    | for_statement
+    | while_statement
+    | return_statement
+    | function_definition
+    | block
+    | error ';'
+    ;
+```
+
+これによって、エラーが発生した場合、その時点からトークンが読み飛ばされ、';' が出現した時点で `statement` に reduce されます。色々なケースを考えるとこれだけでは不十分なのですが、一番簡単な方法としてまずはこれで良いでしょう。
 
 ## AST の作成
 
