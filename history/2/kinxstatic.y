@@ -107,7 +107,9 @@ else_clause_Opt
     ;
 
 for_statement
-    : FOR '(' for_expression1_Opt ';' for_expression2_Opt ';' for_expression2_Opt ')' statement
+    : FOR
+      '(' for_expression1_Opt ';' for_expression2_Opt ';' for_expression2_Opt ')'
+      statement
     ;
 
 for_expression1_Opt
