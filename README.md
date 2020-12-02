@@ -39,7 +39,7 @@ T.B.D.
 
 Let's see how to create your own language through the example of how to create Kinx-Static language.
 
-### [0. Design](history/0)
+### [0. Design](history/0/READEM.md)
 
 This section shows a rough design of Kinx-Static.
 
