@@ -39,6 +39,12 @@ T.B.D.
 
 Let's see how to create your own language through the example of how to create Kinx-Static language.
 
+### [0. Design](history/0)
+
+This section shows a rough design of Kinx-Static.
+
+* just a document.
+
 ### [1. BNF definition](history/1)
 
 You will be able to define your language as BNF style.
