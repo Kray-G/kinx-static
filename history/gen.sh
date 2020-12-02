@@ -12,9 +12,9 @@ fi
 DIR=$1
 cd $DIR
 
-if [ -f kinxstatic.y ]; then
-	echo Generating a parser.
-	../../utility/kmyacc -v -d -m ../../utility/kmyacc.c.parser -b kxs kinxstatic.y
+if [ -f Makefile ]; then
+	make
+	if [ -f kiss ]; then cp -f kiss ../; fi
 fi
 
 cd ..

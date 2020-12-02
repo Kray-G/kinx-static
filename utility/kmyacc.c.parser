@@ -268,11 +268,14 @@ $endif
  */
 #if YYPURE
 #  ifdef YYLEX_PARAM
+extern int yylex(YYSTYPE *, kxs_parsectx_t *);
 #    define YYLEX() yylex(&yylval, YYLEX_PARAM)
 #  else
+extern int yylex(YYSTYPE *);
 #    define YYLEX() yylex(&yylval)
 #  endif /* YYLEX_PARAM */
 #else
+extern int yylex();
 #  define YYLEX() yylex()
 #endif /* YYPURE */
 
