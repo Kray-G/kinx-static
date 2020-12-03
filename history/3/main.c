@@ -11,6 +11,7 @@ int main(int ac, char **av)
 
     node_manager_t mgr = {0};
     kxs_parsectx_t parsectx = {0};
+    string_manager_t smgr = {0};
     parsectx.lexctx.fp = fopen(av[1], "r");
     if (!parsectx.lexctx.fp) {
         return 1;
@@ -20,9 +21,11 @@ int main(int ac, char **av)
     yydebug = 1;
     #endif
     parsectx.node_mgr = &mgr;
+    parsectx.string_mgr = &smgr;
     parsectx.lexctx.ch = ' ';
     int r = yyparse(&parsectx);
 
-    free_node_all(&mgr);
+    string_free_all(&smgr);
+    node_free_all(&mgr);
     return r;
 }

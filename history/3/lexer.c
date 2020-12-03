@@ -94,7 +94,7 @@ int yylex(YYSTYPE *yylval, kxs_parsectx_t *parsectx)
     #undef LEX_EQCASE
 
     if (isdigit(ch)) {
-        string_t *s = string_new(NULL);
+        string_t *s = string_add_to_manager(parsectx->string_mgr, string_new(NULL));
         if (ch == '0') {
             ch = lex_next(lexctx);
             if (ch == 'x' || ch == 'X') {
@@ -149,7 +149,7 @@ int yylex(YYSTYPE *yylval, kxs_parsectx_t *parsectx)
 
     if (lex_is_name1(ch)) {
         char buf[2] = {ch};
-        string_t *s = string_new(buf);
+        string_t *s = string_add_to_manager(parsectx->string_mgr, string_new(buf));
         ch = lex_next(lexctx);
         while (lex_is_name2(ch)) {
             string_append_char(s, ch);

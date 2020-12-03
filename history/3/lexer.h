@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include "ast_node.h"
+#include "xstring.h"
 
 typedef struct kxs_lexctx_t_ {
     int ch;
@@ -17,6 +18,7 @@ typedef struct kxs_lexctx_t_ {
 typedef struct kxs_parsectx_t_ {
     kxs_lexctx_t lexctx;
     node_manager_t *node_mgr;
+    string_manager_t *string_mgr;
 } kxs_parsectx_t;
 
 #endif /* LEXER_H */

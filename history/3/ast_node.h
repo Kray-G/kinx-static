@@ -91,7 +91,7 @@ typedef struct node_t_ {
     } n;
 } node_t;
 
-extern void free_node_all(node_manager_t *mgr);
+extern void node_free_all(node_manager_t *mgr);
 
 extern node_t *ast_declaration_expression(node_manager_t *mgr, string_t *name, int type, node_t *initializer);
 extern node_t *ast_value_int(node_manager_t *mgr, int64_t type);
