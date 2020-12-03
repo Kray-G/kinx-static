@@ -1,7 +1,9 @@
 #ifndef AST_NODE_H
 #define AST_NODE_H
 
+#include <stdlib.h>
 #include <stdint.h>
+#include "xstring.h"
 
 enum node_type {
     NODE_UNKNOWN,
@@ -27,15 +29,10 @@ enum value_type {
     NODETYPE_DBL,
 };
 
-enum expr_type {
-    EXPRTYPE_UNKNOWN,
-    EXPRTYPE_INT,
-    EXPRTYPE_DBL,
-};
-
 struct node_t_;
 typedef struct node_manager_t_ {
     struct node_t_ *node;
+    struct node_t_ *root;
     struct node_manager_t_ *head;
 } node_manager_t;
 
@@ -46,17 +43,16 @@ typedef struct node_t_ {
 
     enum node_type ntype;
     enum value_type vtype;          // type of node. if ntype == STMT_FUNC, this means a return type.
+    string_t *name;                 // use this if need.
     union {
         int64_t ivalue;             // EXPR_INT
         double dvalue;              // EXPR_DBL
         union {
             struct expr_binary {    // EXPR_BINARY
-                enum expr_type etype;
                 struct node_t_ *lhs;
                 struct node_t_ *rhs;
             } binary;
             struct expr_call {     // EXPR_CALL
-                enum expr_type etype;
                 struct node_t_ *func;
                 struct node_t_ *args;
             } call;
@@ -94,5 +90,18 @@ typedef struct node_t_ {
         } s;
     } n;
 } node_t;
+
+extern void free_node_all(node_manager_t *mgr);
+
+extern node_t *ast_declaration_expression(node_manager_t *mgr, string_t *name, int type, node_t *initializer);
+extern node_t *ast_value_int(node_manager_t *mgr, int64_t type);
+extern node_t *ast_value_dbl(node_manager_t *mgr, double type);
+extern node_t *ast_value_variable(node_manager_t *mgr, string_t *name);
+extern node_t *ast_if_statement(node_manager_t *mgr, node_t *expr, node_t *then_clause, node_t *else_clause);
+extern node_t *ast_for_statement(node_manager_t *mgr, node_t *expr1, node_t *expr2, node_t *expr3, node_t *then_clause);
+extern node_t *ast_while_statement(node_manager_t *mgr, node_t *expr, node_t *then_clause);
+extern node_t *ast_dowhile_statement(node_manager_t *mgr, node_t *expr, node_t *then_clause);
+extern node_t *ast_return_statement(node_manager_t *mgr, node_t *expr, node_t *if_modifier);
+extern node_t *ast_function_statement(node_manager_t *mgr, int64_t type, string_t *name, node_t *args, node_t *block);
 
 #endif /* AST_NODE_H */

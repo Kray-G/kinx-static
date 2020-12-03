@@ -1,21 +1,62 @@
 %pure_parser
 
-%token ERROR
-%token IF ELSE FOR DO WHILE FUNCTION RETURN
-%token ADDEQ SUBEQ MULEQ DIVEQ MODEQ EQEQ NEQ LEQ GEQ
-%token VAR NAME INT_TYPE DBL_TYPE INT_VALUE DBL_VALUE
-
 %{
 #include "lexer.h"
+#include "ast_node.h"
 
 #define YYPARSE_PARAM parsectx
 #define YYLEX_PARAM parsectx
+
+#define NODEMGR (((kxs_parsectx_t *)parsectx)->node_mgr)
 %}
 
 %union {
     int64_t iv;
     double dv;
+    string_t *sv;
+    node_t *node;
 }
+
+%token ERROR
+%token IF ELSE FOR DO WHILE FUNCTION RETURN
+%token ADDEQ SUBEQ MULEQ DIVEQ MODEQ EQEQ NEQ LEQ GEQ
+%token<iv> INT_TYPE DBL_TYPE
+%token<iv> INT_VALUE
+%token<dv> DBL_VALUE
+%token<sv> VAR NAME
+
+%type<node> program
+%type<node> statement_list
+%type<node> statement
+%type<node> block
+%type<node> declaration_statement
+%type<node> var_declaration
+%type<node> declaration_list
+%type<node> declaration_expression
+%type<iv> type_info_Opt
+%type<iv> type_name
+%type<node> initializer_Opt
+%type<node> expression_statement
+%type<node> expression
+%type<node> assign_expression
+%type<node> compare_expression
+%type<node> add_sub_expression
+%type<node> mul_div_mod_expression
+%type<node> postfix_expression
+%type<node> call_argument_list
+%type<node> factor
+%type<node> if_statement
+%type<node> else_clause_Opt
+%type<node> for_statement
+%type<node> for_expression1_Opt
+%type<node> for_expression2_Opt
+%type<node> while_statement
+%type<node> do_while_statement
+%type<node> return_statement
+%type<node> if_modifier_Opt
+%type<node> function_definition
+%type<node> argument_list
+%type<node> argument
 
 %%
 
@@ -41,7 +82,7 @@ statement
     ;
 
 block
-    : '{' statement_list '}'
+    : '{' statement_list '}' { $$ = $2; }
     ;
 
 declaration_statement
@@ -49,7 +90,7 @@ declaration_statement
     ;
 
 var_declaration
-    : VAR declaration_list
+    : VAR declaration_list { $$ = $2; }
     ;
 
 declaration_list
@@ -58,22 +99,22 @@ declaration_list
     ;
 
 declaration_expression
-    : NAME type_info_Opt initializer_Opt
+    : NAME type_info_Opt initializer_Opt { $$ = ast_declaration_expression(NODEMGR, $1, $2, $3); }
     ;
 
 type_info_Opt
-    : /* empty */
-    | ':' type_name
+    : /* empty */ { $$ = NODETYPE_INT; }
+    | ':' type_name { $$ = $2; }
     ;
 
 type_name
-    : INT_TYPE
-    | DBL_TYPE
+    : INT_TYPE { $$ = NODETYPE_INT; }
+    | DBL_TYPE { $$ = NODETYPE_DBL; }
     ;
 
 initializer_Opt
-    : /* empty */
-    | '=' expression
+    : /* empty */ { $$ = NULL; }
+    | '=' expression { $$ = $2; }
     ;
 
 expression_statement
@@ -128,57 +169,59 @@ call_argument_list
     ;
 
 factor
-    : NAME
-    | INT_VALUE
-    | DBL_VALUE
-    | '(' expression ')'
+    : NAME { $$ = ast_value_variable(NODEMGR, $1); }
+    | INT_VALUE { $$ = ast_value_int(NODEMGR, $1); }
+    | DBL_VALUE { $$ = ast_value_dbl(NODEMGR, $1); }
+    | '(' expression ')' { $$ = $2; }
     ;
 
 if_statement
-    : IF '(' expression ')' statement else_clause_Opt
+    : IF '(' expression ')' statement else_clause_Opt { $$ = ast_if_statement(NODEMGR, $3, $5, $6); }
     ;
 
 else_clause_Opt
-    : /* empty */
-    | ELSE statement
+    : /* empty */ { $$= NULL; }
+    | ELSE statement { $$ = $2; }
     ;
 
 for_statement
     : FOR
       '(' for_expression1_Opt ';' for_expression2_Opt ';' for_expression2_Opt ')'
       statement
+        { $$ = ast_for_statement(NODEMGR, $3, $5, $7, $9); }
     ;
 
 for_expression1_Opt
-    : /* empty */
+    : /* empty */ { $$ = NULL; }
     | expression
     | var_declaration
     ;
 
 for_expression2_Opt
-    : /* empty */
+    : /* empty */ { $$ = NULL; }
     | expression
     ;
 
 while_statement
-    : WHILE '(' expression ')' statement
+    : WHILE '(' expression ')' statement { $$ = ast_while_statement(NODEMGR, $3, $5); }
     ;
 
 do_while_statement
-    : DO statement WHILE '(' expression ')' ';'
+    : DO statement WHILE '(' expression ')' ';' { $$ = ast_dowhile_statement(NODEMGR, $5, $2); }
     ;
 
 return_statement
-    : RETURN expression if_modifier_Opt ';'
+    : RETURN expression if_modifier_Opt ';' { $$ = ast_return_statement(NODEMGR, $2, $3); }
     ;
 
 if_modifier_Opt
     : /* empty */
-    | IF '(' expression ')'
+    | IF '(' expression ')' { $$ = $3; }
     ;
 
 function_definition
     : FUNCTION type_info_Opt NAME '(' argument_list ')' block
+        { $$ = ast_function_statement(NODEMGR, $2, $3, $5, $7); }
     ;
 
 argument_list
@@ -187,7 +230,7 @@ argument_list
     ;
 
 argument
-    : NAME type_info_Opt
+    : NAME type_info_Opt { $$ = ast_declaration_expression(NODEMGR, $1, $2, NULL); }
     ;
 
 %%

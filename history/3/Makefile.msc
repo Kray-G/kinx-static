@@ -1,22 +1,33 @@
-CFLAGS=/c /O2 /DYYDEBUG=1
+LIBDIR=..\..\lib
+LIBOBJS=xstring.obj
+OBJS=main.obj kxs.tab.obj lexer.obj ast_node.obj $(LIBOBJS)
+CC=cl
+CFLAGS=/c /O2 /DYYDEBUG=1 -I$(LIBDIR)
+YACC=..\..\utility\kmyacc
 KMYACCOPT=-v -d -b kxs
 
 all: kiss.exe
 
-kiss.exe: main.obj kxs.tab.obj lexer.obj
-	cl /Fekiss.exe main.obj kxs.tab.obj lexer.obj
+kiss.exe: $(OBJS)
+	$(CC) /Fekiss.exe $(OBJS)
 
 kxs.tab.obj: kxs.tab.c kxs.tab.h
-	cl $(CFLAGS) kxs.tab.c
+	$(CC) $(CFLAGS) kxs.tab.c
 
 kxs.tab.c: kinxstatic.y
-	..\..\utility\kmyacc $(KMYACCOPT) kinxstatic.y
+	$(YACC) $(KMYACCOPT) kinxstatic.y
 
 kxs.tab.h: kinxstatic.y
-	..\..\utility\kmyacc $(KMYACCOPT) kinxstatic.y
+	$(YACC) $(KMYACCOPT) kinxstatic.y
 
 lexer.obj: lexer.c lexer.h kxs.tab.h
-	cl $(CFLAGS) lexer.c
+	$(CC) $(CFLAGS) lexer.c
+
+ast_node.obj: ast_node.c ast_node.h kxs.tab.h
+	$(CC) $(CFLAGS) ast_node.c
 
 main.obj: main.c lexer.h kxs.tab.h
-	cl $(CFLAGS) main.c
+	$(CC) $(CFLAGS) main.c
+
+xstring.obj: $(LIBDIR)\xstring.c $(LIBDIR)\xstring.h
+	$(CC) $(CFLAGS) $(LIBDIR)\xstring.c

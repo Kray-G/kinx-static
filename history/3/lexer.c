@@ -23,23 +23,25 @@ static int lex_next(kxs_lexctx_t *lexctx)
     return lexctx->ch = ch;
 }
 
-static int get_token_of_keyword(const char *buf)
+static int get_token_of_keyword(string_t *s)
 {
-    if (buf[0] == 'd') {
+    char *buf = s->p;
+    char ch = buf[0];
+    if (ch == 'd') {
         if (!strcmp(buf, "dbl")) return DBL_TYPE;
-    } else if (buf[0] == 'e') {
+    } else if (ch == 'e') {
         if (!strcmp(buf, "else")) return ELSE;
-    } else if (buf[0] == 'f') {
+    } else if (ch == 'f') {
         if (!strcmp(buf, "for")) return FOR;
         if (!strcmp(buf, "function")) return FUNCTION;
-    } else if (buf[0] == 'i') {
+    } else if (ch == 'i') {
         if (!strcmp(buf, "if")) return IF;
         if (!strcmp(buf, "int")) return INT_TYPE;
-    } else if (buf[0] == 'r') {
+    } else if (ch == 'r') {
         if (!strcmp(buf, "return")) return RETURN;
-    } else if (buf[0] == 'v') {
+    } else if (ch == 'v') {
         if (!strcmp(buf, "var")) return VAR;
-    } else if (buf[0] == 'w') {
+    } else if (ch == 'w') {
         if (!strcmp(buf, "while")) return WHILE;
     }
     return NAME;
@@ -92,66 +94,69 @@ int yylex(YYSTYPE *yylval, kxs_parsectx_t *parsectx)
     #undef LEX_EQCASE
 
     if (isdigit(ch)) {
-        int i = 0;
-        char buf[LEX_BUFMAX] = {0};
+        string_t *s = string_new(NULL);
         if (ch == '0') {
             ch = lex_next(lexctx);
             if (ch == 'x' || ch == 'X') {
                 ch = lex_next(lexctx);
-                while (i < LEX_BUFMAX && isxdigit(ch)) {
-                    buf[i++] = ch;
+                while (isxdigit(ch)) {
+                    string_append_char(s, ch);
                     ch = lex_next(lexctx);
                 }
-                yylval->iv = strtoll(buf, NULL, 16);
+                yylval->iv = strtoll(s->p, NULL, 16);
                 return INT_VALUE;
             } else if (lex_is_oct(ch)) {
-                while (i < LEX_BUFMAX && lex_is_oct(ch)) {
-                    buf[i++] = ch;
+                while (lex_is_oct(ch)) {
+                    string_append_char(s, ch);
                     ch = lex_next(lexctx);
                 }
-                yylval->iv = strtoll(buf, NULL, 8);
+                yylval->iv = strtoll(s->p, NULL, 8);
                 return INT_VALUE;
             }
             // just 0.
             yylval->iv = 0;
             return INT_VALUE;
         }
-        while (i < LEX_BUFMAX && isdigit(ch)) {
-            buf[i++] = ch;
+        while (isdigit(ch)) {
+            string_append_char(s, ch);
             ch = lex_next(lexctx);
         }
         if (ch != '.') {
-            yylval->iv = strtoll(buf, NULL, 10);
+            yylval->iv = strtoll(s->p, NULL, 10);
             return INT_VALUE;
         }
+        string_append_char(s, ch);
         ch = lex_next(lexctx);
-        while (i < LEX_BUFMAX && isdigit(ch)) {
-            buf[i++] = ch;
+        while (isdigit(ch)) {
+            string_append_char(s, ch);
             ch = lex_next(lexctx);
         }
         if (ch == 'e' || ch == 'E') {
+            string_append_char(s, ch);
             ch = lex_next(lexctx);
             if (ch == '+' || ch == '-') {
+                string_append_char(s, ch);
                 ch = lex_next(lexctx);
             }
-            while (i < LEX_BUFMAX && isdigit(ch)) {
-                buf[i++] = ch;
+            while (isdigit(ch)) {
+                string_append_char(s, ch);
                 ch = lex_next(lexctx);
             }
         }
-        yylval->dv = strtod(buf, NULL);
+        yylval->dv = strtod(s->p, NULL);
         return DBL_VALUE;
     }
 
     if (lex_is_name1(ch)) {
-        int i = 1;
-        char buf[LEX_BUFMAX] = {ch};
+        char buf[2] = {ch};
+        string_t *s = string_new(buf);
         ch = lex_next(lexctx);
-        while (i < LEX_BUFMAX && lex_is_name2(ch)) {
-            buf[i++] = ch;
+        while (lex_is_name2(ch)) {
+            string_append_char(s, ch);
             ch = lex_next(lexctx);
         }
-        return get_token_of_keyword(buf);
+        yylval->sv = s;
+        return get_token_of_keyword(s);
     }
 
     if (isgraph(ch)) {
