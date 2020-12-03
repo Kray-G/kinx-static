@@ -165,7 +165,12 @@ while_statement
     ;
 
 return_statement
-    : RETURN expression ';'
+    : RETURN expression if_modifier_Opt ';'
+    ;
+
+if_modifier_Opt
+    : /* empty */
+    | IF '(' expression ')'
     ;
 
 function_definition

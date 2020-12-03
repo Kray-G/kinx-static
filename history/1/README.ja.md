@@ -16,29 +16,31 @@
 
 パーサーはレキサーから値を受け取って処理します。レキサーからは **トークン** という情報を受け取って、そのトークンの並びを判断するのがパーサーの仕事です。Kinx Static では以下のトークンがあります。1 文字で表せないものは代わりとなる記号を用意します。
 
-|     トークン      |           内容            |
-| :---------------- | :------------------------ |
-| `=` などの 1 文字 | その文字そのものを表す    |
-| IF                | `if` の文字列を表す       |
-| ELSE              | `else` の文字列を表す     |
-| FOR               | `for` の文字列を表す      |
-| WHILE             | `while` の文字列を表す    |
-| FUNCTION          | `function` の文字列を表す |
-| VAR               | `var` の文字列を表す      |
-| INT_TYPE          | `int` の文字列を表す      |
-| DBL_TYPE          | `dbl` の文字列を表す      |
-| ADDEQ             | `+=` の文字列を表す       |
-| SUBEQ             | `-=` の文字列を表す       |
-| MULEQ             | `*=` の文字列を表す       |
-| DIVEQ             | `/=` の文字列を表す       |
-| MODEQ             | `%=` の文字列を表す       |
-| EQEQ              | `==` の文字列を表す       |
-| NEQ               | `!=` の文字列を表す       |
-| LEQ               | `<=` の文字列を表す       |
-| GEQ               | `>=` の文字列を表す       |
-| NAME              | 変数名を表す              |
-| INT_VALUE         | 整数値を表す              |
-| DBL_VALUE         | 実数値を表す              |
+|     トークン      |              内容              |
+| :---------------- | :----------------------------- |
+| `=` などの 1 文字 | その文字そのものを表す         |
+| ERROR             | 正しいトークンを得られなかった |
+| IF                | `if` の文字列を表す            |
+| ELSE              | `else` の文字列を表す          |
+| FOR               | `for` の文字列を表す           |
+| WHILE             | `while` の文字列を表す         |
+| FUNCTION          | `function` の文字列を表す      |
+| RETURN            | `return` の文字列を表す        |
+| ADDEQ             | `+=` の文字列を表す            |
+| SUBEQ             | `-=` の文字列を表す            |
+| MULEQ             | `*=` の文字列を表す            |
+| DIVEQ             | `/=` の文字列を表す            |
+| MODEQ             | `%=` の文字列を表す            |
+| EQEQ              | `==` の文字列を表す            |
+| NEQ               | `!=` の文字列を表す            |
+| LEQ               | `<=` の文字列を表す            |
+| GEQ               | `>=` の文字列を表す            |
+| VAR               | `var` の文字列を表す           |
+| NAME              | 変数名を表す                   |
+| INT_TYPE          | `int` の文字列を表す           |
+| DBL_TYPE          | `dbl` の文字列を表す           |
+| INT_VALUE         | 整数値を表す                   |
+| DBL_VALUE         | 実数値を表す                   |
 
 トークンは通常整数値です。上記のトークンは以下の定義の中で追々出てきますが、上記の意味だと思ってください。パーサー内では、トークンは **終端記号** として扱われます。終端記号についても後述します。
 
@@ -120,6 +122,7 @@ statement_list
 * if 文
 * for 文
 * while 文
+* return 文
 * 関数定義
 * `{` と `}` で括られた文(`statement`)の集合
 
@@ -132,6 +135,7 @@ statement
     | if_statement
     | for_statement
     | while_statement
+    | return_statement
     | function_definition
     | block
     ;
@@ -459,6 +463,23 @@ while_statement
 ```
 
 これだけで while の構文がサポートできます。
+
+### return 文
+
+return 文をサポートします。関数から復帰するのに必要です。
+
+```nbnf
+return_statement
+    : RETURN expression if_modifier_Opt ';'
+    ;
+
+if_modifier_Opt
+    : /* empty */
+    | IF '(' expression ')'
+    ;
+```
+
+後置的に `if` で就職できるようにもしておきます。
 
 ### 関数定義
 

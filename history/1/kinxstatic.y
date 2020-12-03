@@ -21,6 +21,7 @@ statement
     | if_statement
     | for_statement
     | while_statement
+    | return_statement
     | function_definition
     | block
     ;
@@ -147,6 +148,15 @@ for_expression2_Opt
 
 while_statement
     : WHILE '(' expression ')' statement
+    ;
+
+return_statement
+    : RETURN expression if_modifier_Opt ';'
+    ;
+
+if_modifier_Opt
+    : /* empty */
+    | IF '(' expression ')'
     ;
 
 function_definition

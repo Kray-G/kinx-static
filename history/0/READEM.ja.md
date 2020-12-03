@@ -96,115 +96,11 @@ for (decralation; expression; expression) {
 ```javascript
 function:int functionName(a:int, b:int) {
     ...
+    return a + b;
 }
 ```
 
-## 変換イメージ
-
-C 言語に変換することを想定しており、以下のように変換される。
-
-### 宣言
-
-`int` は 64 ビット整数である。C 言語としては `int64_t` で扱う。`dbl` は倍精度浮動小数点数とし、`double` で扱う。
-
-```c
-// var a;                         // a = 0
-int64_t a = 0;
-
-// var a:int;                     // a = 0
-int64_t a = 0;
-
-// var a = 10;                    // a = 10
-int64_t a = 10;
-
-// var a:int = 11;                // a = 11
-int64_t a = 11;
-
-// var a = 10, b:int = 20;        // a = 10, b = 20
-int64_t a = 10;
-int64_t b = 20;
-
-// var a:int = 11, b = 21;        // a = 11, b = 21
-int64_t a = 11;
-int64_t b = 21;
-
-// var a:int = 11, b:dbl = 21;    // a = 11, b = 21.0
-int64_t a = 11;
-double b = 21.0;
-
-// var b = 2.0;                   // b = 2.0
-double b = 2.0;
-```
-
-### 式
-
-式は大体そのまま使えばよい。型が変化する際は、キャストを追加する。
-
-```c
-// var a:int = 10;
-// var b:int = 20;
-// var c = a / b;    // `c` will be `double`.
-int64_t a = 10;
-int64_t b = 20;
-double c = (double)a / (double)b;
-```
-
-### 制御構文
-
-#### if
-
-`if` 自体はそのまま。式中に型が変化する場合、キャストが入ったりするが、`if` 自体はそのまま。
-
-```javascript
-if (expression) {
-   ...
-} else if (expression) {
-   ...
-} else {
-   ...
-}
-```
-
-#### while
-
-`while` 自体はそのまま。式中に型が変化する場合、キャストが入ったりするが、`while` 自体はそのまま。
-
-```javascript
-while (expression) {
-   ...
-}
-```
-
-#### for
-
-`for` は、初期設定フィールドが通常の式であればそのまま（式は変換後の式）。宣言である場合、以下のようにスコープを分離し、宣言をループに先立って行う。
-
-```c
-// for (var a = 10, b = 2.0; expression; expression) {
-//     ...
-// }
-{
-    int64_t a = 10;
-    double b = 2.0;
-    for ( ; expression; expression) {
-        ...
-    }
-}
-```
-
-### 関数
-
-関数は、基本的に 1:1 対応した形で変換する。名前の衝突を避けるため、復帰値の型と引数の型を関数名につけた形で変換する。
-
-```c
-// function:int functionName(a:int, b:int) {
-//     ...
-// }
-int64_t i_functionName_ii(int64_t a, int64_t b)
-{
-    ...
-}
-```
+関数からは `return` で復帰します。
 
 # おわりに
 
