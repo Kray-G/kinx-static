@@ -7,7 +7,7 @@
 * 以下が初期実装としてサポートされる予定。
     * 型（int、dbl のみ, 省略可）、宣言
     * 式、演算（加減乗除＋剰余）
-    * 制御構文（if, while, for）
+    * 制御構文（if, while, do-while, for）
     * 関数
 
 ## 文法
@@ -69,6 +69,16 @@ if (expression) {
 while (expression) {
    ...
 }
+```
+
+#### do-while
+
+`do-while` も通常の C と同じ構文とする。
+
+```javascript
+do {
+   ...
+} while (expression);
 ```
 
 #### for

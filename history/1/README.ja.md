@@ -23,6 +23,7 @@
 | IF                | `if` の文字列を表す            |
 | ELSE              | `else` の文字列を表す          |
 | FOR               | `for` の文字列を表す           |
+| DO                | `do` の文字列を表す            |
 | WHILE             | `while` の文字列を表す         |
 | FUNCTION          | `function` の文字列を表す      |
 | RETURN            | `return` の文字列を表す        |
@@ -135,6 +136,7 @@ statement
     | if_statement
     | for_statement
     | while_statement
+    | do_while_statement
     | return_statement
     | function_definition
     | block
@@ -464,6 +466,18 @@ while_statement
 
 これだけで while の構文がサポートできます。
 
+### do-while 文
+
+do-while 文も全く簡単です。
+
+```nbnf
+do_while_statement
+    : DO statement WHILE '(' expression ')' ';'
+    ;
+```
+
+while との違いは後判定であることと、最後にセミコロンがつくことです。
+
 ### return 文
 
 return 文をサポートします。関数から復帰するのに必要です。
@@ -527,14 +541,14 @@ kinxstatic.y: there are 1 shift/reduce conflicts
 先ほどの shift/reduce コンフリクトですね。それが 1 つだけなので、成功です。具体的に .output ファイルを見てみると以下の指摘が見つかります。
 
 ```
-state 45
-45: shift/reduce conflict (shift 6, reduce 44) on ELSE
-	(43) if_statement : IF '(' expression ')' statement . else_clause_Opt
-	(44) else_clause_Opt : .
+state 64
+64: shift/reduce conflict (shift 6, reduce 56) on ELSE
+	(55) if_statement : IF '(' expression ')' statement . else_clause_Opt
+	(56) else_clause_Opt : .
 
 	ELSE		shift 6
-	else_clause_Opt	goto 96 and reduce (43)
-	.		reduce (44)
+	else_clause_Opt	goto 124 and reduce (55)
+	.		reduce (56)
 ```
 
 `ELSE` で shift するか、`else_clause_Opt` に reduce するかでちゃんと悩んでますねー。

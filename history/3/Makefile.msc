@@ -1,0 +1,22 @@
+CFLAGS=/c /O2 /DYYDEBUG=1
+KMYACCOPT=-v -d -b kxs
+
+all: kiss.exe
+
+kiss.exe: main.obj kxs.tab.obj lexer.obj
+	cl /Fekiss.exe main.obj kxs.tab.obj lexer.obj
+
+kxs.tab.obj: kxs.tab.c kxs.tab.h
+	cl $(CFLAGS) kxs.tab.c
+
+kxs.tab.c: kinxstatic.y
+	..\..\utility\kmyacc $(KMYACCOPT) kinxstatic.y
+
+kxs.tab.h: kinxstatic.y
+	..\..\utility\kmyacc $(KMYACCOPT) kinxstatic.y
+
+lexer.obj: lexer.c lexer.h kxs.tab.h
+	cl $(CFLAGS) lexer.c
+
+main.obj: main.c lexer.h kxs.tab.h
+	cl $(CFLAGS) main.c

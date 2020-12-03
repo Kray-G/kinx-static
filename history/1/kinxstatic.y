@@ -1,6 +1,6 @@
 
 %token ERROR
-%token IF ELSE FOR WHILE FUNCTION RETURN
+%token IF ELSE FOR DO WHILE FUNCTION RETURN
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ EQEQ NEQ LEQ GEQ
 %token VAR NAME INT_TYPE DBL_TYPE INT_VALUE DBL_VALUE
 
@@ -21,6 +21,7 @@ statement
     | if_statement
     | for_statement
     | while_statement
+    | do_while_statement
     | return_statement
     | function_definition
     | block
@@ -148,6 +149,10 @@ for_expression2_Opt
 
 while_statement
     : WHILE '(' expression ')' statement
+    ;
+
+do_while_statement
+    : DO statement WHILE '(' expression ')' ';'
     ;
 
 return_statement

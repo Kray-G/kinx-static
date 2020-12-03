@@ -21,6 +21,7 @@
 | IF                | `if` の文字列を表す            |
 | ELSE              | `else` の文字列を表す          |
 | FOR               | `for` の文字列を表す           |
+| DO                | `do` の文字列を表す            |
 | WHILE             | `while` の文字列を表す         |
 | FUNCTION          | `function` の文字列を表す      |
 | RETURN            | `return` の文字列を表す        |
@@ -53,24 +54,25 @@ extern YYSTYPE yylval;
 #define IF 258
 #define ELSE 259
 #define FOR 260
-#define WHILE 261
-#define FUNCTION 262
-#define RETURN 263
-#define ADDEQ 264
-#define SUBEQ 265
-#define MULEQ 266
-#define DIVEQ 267
-#define MODEQ 268
-#define EQEQ 269
-#define NEQ 270
-#define LEQ 271
-#define GEQ 272
-#define VAR 273
-#define NAME 274
-#define INT_TYPE 275
-#define DBL_TYPE 276
-#define INT_VALUE 277
-#define DBL_VALUE 278
+#define DO 261
+#define WHILE 262
+#define FUNCTION 263
+#define RETURN 264
+#define ADDEQ 265
+#define SUBEQ 266
+#define MULEQ 267
+#define DIVEQ 268
+#define MODEQ 269
+#define EQEQ 270
+#define NEQ 271
+#define LEQ 272
+#define GEQ 273
+#define VAR 274
+#define NAME 275
+#define INT_TYPE 276
+#define DBL_TYPE 277
+#define INT_VALUE 278
+#define DBL_VALUE 279
 ```
 
 今後の実装で変化していきますが、一先ずレキサーはこのヘッダを include することが可能です。
@@ -123,24 +125,25 @@ extern YYSTYPE yylval;
 #define IF 258
 #define ELSE 259
 #define FOR 260
-#define WHILE 261
-#define FUNCTION 262
-#define RETURN 263
-#define ADDEQ 264
-#define SUBEQ 265
-#define MULEQ 266
-#define DIVEQ 267
-#define MODEQ 268
-#define EQEQ 269
-#define NEQ 270
-#define LEQ 271
-#define GEQ 272
-#define VAR 273
-#define NAME 274
-#define INT_TYPE 275
-#define DBL_TYPE 276
-#define INT_VALUE 277
-#define DBL_VALUE 278
+#define DO 261
+#define WHILE 262
+#define FUNCTION 263
+#define RETURN 264
+#define ADDEQ 265
+#define SUBEQ 266
+#define MULEQ 267
+#define DIVEQ 268
+#define MODEQ 269
+#define EQEQ 270
+#define NEQ 271
+#define LEQ 272
+#define GEQ 273
+#define VAR 274
+#define NAME 275
+#define INT_TYPE 276
+#define DBL_TYPE 277
+#define INT_VALUE 278
+#define DBL_VALUE 279
 ```
 
 ### yylex
@@ -227,7 +230,7 @@ int main(int ac, char **av)
         return 1;
     }
 
-    kxs_parsectx_t parsectx;
+    kxs_parsectx_t parsectx = {0};
     parsectx.lexctx.fp = fopen(av[1], "r");
     if (!parsectx.lexctx.fp) {
         return 1;
@@ -239,7 +242,7 @@ int main(int ac, char **av)
     parsectx.lexctx.ch = ' ';
     int r = yyparse(&parsectx);
 
-    return 0;
+    return r;
 }
 ```
 
