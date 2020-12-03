@@ -16,14 +16,11 @@ static node_t *node_new(node_manager_t *mgr)
     return n;
 }
 
-void free_node_all(node_manager_t *mgr)
+void node_free_all(node_manager_t *mgr)
 {
     node_manager_t *m = mgr->head;
     while (m) {
         node_manager_t *next = m->head;
-        if (m->node->name) {
-            string_free(m->node->name);
-        }
         free(m->node);
         free(m);
         m = next;

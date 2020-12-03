@@ -27,6 +27,12 @@ string_t *string_new(char *p)
     return string_new_len(p, strlen(p));
 }
 
+string_t *string_clear(string_t *s)
+{
+    s->len = 0;
+    s->p[0] = 0;
+}
+
 void string_free(string_t *s)
 {
     free(s->p);

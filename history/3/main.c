@@ -9,7 +9,8 @@ int main(int ac, char **av)
         return 1;
     }
 
-    node_manager_t mgr = {0};
+    node_manager_t nmgr = {0};
+    string_manager_t smgr = {0};
     kxs_parsectx_t parsectx = {0};
     parsectx.lexctx.fp = fopen(av[1], "r");
     if (!parsectx.lexctx.fp) {
@@ -19,10 +20,11 @@ int main(int ac, char **av)
     #if YYDEBUG == 1
     yydebug = 1;
     #endif
-    parsectx.node_mgr = &mgr;
+    parsectx.node_mgr = &nmgr;
+    parsectx.string_mgr = &smgr;
     parsectx.lexctx.ch = ' ';
     int r = yyparse(&parsectx);
 
-    free_node_all(&mgr);
+    node_free_all(&nmgr);
     return r;
 }

@@ -18,12 +18,12 @@
 }
 
 %token ERROR
-%token IF ELSE FOR DO WHILE FUNCTION RETURN
+%token VAR IF ELSE FOR DO WHILE FUNCTION RETURN
 %token ADDEQ SUBEQ MULEQ DIVEQ MODEQ EQEQ NEQ LEQ GEQ
 %token<iv> INT_TYPE DBL_TYPE
 %token<iv> INT_VALUE
 %token<dv> DBL_VALUE
-%token<sv> VAR NAME
+%token<sv> NAME
 
 %type<node> program
 %type<node> statement_list
