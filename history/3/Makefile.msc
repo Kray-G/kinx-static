@@ -1,8 +1,9 @@
 LIBDIR=..\..\lib
+INCDIR=..\..\include
 LIBOBJS=xstring.obj
 OBJS=main.obj kxs.tab.obj lexer.obj ast_node.obj $(LIBOBJS)
 CC=cl
-CFLAGS=/c /O2 /DYYDEBUG=1 -I$(LIBDIR)
+CFLAGS=/c /O2 /DYYDEBUG=1 -I$(INCDIR)
 YACC=..\..\utility\kmyacc
 KMYACCOPT=-v -d -b kxs
 
@@ -29,5 +30,5 @@ ast_node.obj: ast_node.c ast_node.h kxs.tab.h
 main.obj: main.c lexer.h kxs.tab.h
 	$(CC) $(CFLAGS) main.c
 
-xstring.obj: $(LIBDIR)\xstring.c $(LIBDIR)\xstring.h
+xstring.obj: $(LIBDIR)\xstring.c $(INCDIR)\xstring.h
 	$(CC) $(CFLAGS) $(LIBDIR)\xstring.c
