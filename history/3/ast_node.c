@@ -142,9 +142,11 @@ node_t *ast_expr_statement(node_manager_t *mgr, node_t *expr)
 node_t *ast_block_statement(node_manager_t *mgr, node_t *stmt)
 {
     if (!stmt) {
+        /* there is no statement, a block is not necessary. */
         return NULL;
     }
-    if (stmt->ntype == STMT_BLOCK) {
+    if (stmt->ntype == STMT_BLOCK && !stmt->next) {
+        /* This is a single block in a block. Do not need to wrap it by a block. */
         return stmt;
     }
 
