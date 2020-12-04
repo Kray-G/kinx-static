@@ -12,6 +12,7 @@ int main(int ac, char **av)
     node_manager_t nmgr = {0};
     string_set_t smgr = {0};
     kxs_parsectx_t parsectx = {0};
+    string_manager_t smgr = {0};
     parsectx.lexctx.fp = fopen(av[1], "r");
     if (!parsectx.lexctx.fp) {
         return 1;

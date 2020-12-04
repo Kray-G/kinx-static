@@ -97,6 +97,27 @@ string_t *string_dup(string_t *dst)
     return string_new_len(dst->p, dst->len);
 }
 
+string_t *string_add_to_manager(string_manager_t *smgr, string_t *s)
+{
+    string_manager_t *m = (string_manager_t *)calloc(1, sizeof(string_manager_t));
+    m->s = s;
+    m->head = smgr->head;
+    smgr->head = m;
+    return s;
+}
+
+
+void string_free_all(string_manager_t *mgr)
+{
+    string_manager_t *m = mgr->head;
+    while (m) {
+        string_manager_t *next = m->head;
+        string_free(m->s);
+        free(m);
+        m = next;
+    }
+}
+
 #ifdef XSTRING_DEBUG
 #include <stdio.h>
 
