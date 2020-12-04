@@ -159,7 +159,7 @@ TOP:;
         break;
     }
     case STMT_FUNC: {
-        printf("[function-definition]\n", node->n.s.func.name->p);
+        printf("[function-definition] %s\n", node->n.s.func.name->p);
         ast_dump_item(indent + 1, node->n.s.func.args);
         ast_dump_item(indent + 1, node->n.s.func.block);
         CHECKNEXT(node);
