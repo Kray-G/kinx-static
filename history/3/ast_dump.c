@@ -4,6 +4,17 @@
 #define SHOW_INDENT(indent) for (int i = 0; i < indent; i++) printf("  ")
 #define CHECKNEXT(node) if (node->next) { node = node->next; goto TOP; }
 
+static const char *get_type_name(int vtype)
+{
+    switch (vtype) {
+    case VALTYPE_INT: return "int";
+    case VALTYPE_DBL: return "dbl";
+    default:
+        ;
+    }
+    return "((unknown))";
+}
+
 static const char *get_operator_name(int op)
 {
     switch (op) {
@@ -30,9 +41,10 @@ static void ast_dump_item(int indent, node_t *node)
     }
 
 TOP:;
-// printf("node = %p\n", node);
     SHOW_INDENT(indent);
+
     switch (node->ntype) {
+    /* dump expression. */
     case EXPR_INT: {
         printf("[value:int] %lld\n", node->n.ivalue);
         break;
@@ -42,13 +54,13 @@ TOP:;
         break;
     }
     case EXPR_VAR: {
-        printf("[var] %s\n", node->n.name->p);
+        printf("[var:%s] %s\n", get_type_name(node->vtype), node->n.name->p);
         break;
     }
     case EXPR_CALL: {
-        printf("[call]:\n");
+        printf("[call]\n");
         SHOW_INDENT(indent + 1);
-        printf("[func]:\n");
+        printf("[func]\n");
         ast_dump_item(indent + 2, node->n.e.call.func);
         SHOW_INDENT(indent + 1);
         printf("[args]\n");
@@ -69,7 +81,7 @@ TOP:;
     case EXPR_DECL: {
         printf("[declaration]\n");
         SHOW_INDENT(indent + 1);
-        printf("[var] %s\n", node->n.e.decl.name->p);
+        printf("[var:%s] %s\n", get_type_name(node->vtype), node->n.e.decl.name->p);
         ast_dump_item(indent + 2, node->n.e.decl.initializer);
         if (node->next) {
             ast_dump_item(indent, node->next);
@@ -77,6 +89,7 @@ TOP:;
         break;
     }
 
+    /* dump statement, note that a statement can have a next statement. */
     case STMT_EXPR: {
         printf("[expression]\n");
         ast_dump_item(indent + 1, node->n.s.expr.expr);
