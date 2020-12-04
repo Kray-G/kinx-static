@@ -90,7 +90,7 @@ TOP:;
     /* dump statement, note that a statement can have a next statement. */
     case STMT_EXPR: {
         printf("[expression]\n");
-        ast_dump_item(indent + 1, node->n.s.expr.expr);
+        ast_dump_item(indent + 1, node->n.s.expr);
         CHECKNEXT(node);
         break;
     }

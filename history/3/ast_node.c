@@ -135,7 +135,7 @@ node_t *ast_expr_statement(node_manager_t *mgr, node_t *expr)
     node_t *n = node_new(mgr);
     n->ntype = STMT_EXPR;
     n->vtype = VALTYPE_UNKNOWN;
-    n->n.s.expr.expr = expr;
+    n->n.s.expr = expr;
     return n;
 }
 

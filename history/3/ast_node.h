@@ -65,9 +65,7 @@ typedef struct node_t_ {
         } e;
         union {
             struct node_t_ *block;  // STMT_BLOCK
-            struct {                // STMT_EXPR, STMT_DECL
-                struct node_t_ *expr;
-            } expr;
+            struct node_t_ *expr;   // STMT_EXPR, STMT_DECL
             struct {                // STMT_BRANCH
                 struct node_t_ *expr;
                 struct node_t_ *then_cloause;
