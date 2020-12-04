@@ -100,6 +100,7 @@ extern node_t *ast_value_int(node_manager_t *mgr, int64_t type);
 extern node_t *ast_value_dbl(node_manager_t *mgr, double type);
 extern node_t *ast_variable(node_manager_t *mgr, string_t *name);
 extern node_t *ast_binary(node_manager_t *mgr, int op, node_t *lhs, node_t *rhs);
+extern node_t *ast_binary_right(node_manager_t *mgr, int op, node_t *lhs, node_t *rhs);
 extern node_t *ast_call(node_manager_t *mgr, node_t *func, node_t *args);
 extern node_t *ast_decl_expression(node_manager_t *mgr, string_t *name, int type, node_t *initializer);
 

@@ -127,12 +127,12 @@ expression
 
 assign_expression
     : compare_expression
-    | assign_expression '=' compare_expression { $$ = ast_binary(NODEMGR, '=', $1, $3); }
-    | assign_expression ADDEQ compare_expression { $$ = ast_binary(NODEMGR, ADDEQ, $1, $3); }
-    | assign_expression SUBEQ compare_expression { $$ = ast_binary(NODEMGR, SUBEQ, $1, $3); }
-    | assign_expression MULEQ compare_expression { $$ = ast_binary(NODEMGR, MULEQ, $1, $3); }
-    | assign_expression DIVEQ compare_expression { $$ = ast_binary(NODEMGR, DIVEQ, $1, $3); }
-    | assign_expression MODEQ compare_expression { $$ = ast_binary(NODEMGR, MODEQ, $1, $3); }
+    | assign_expression '=' compare_expression { $$ = ast_binary_right(NODEMGR, '=', $1, $3); }
+    | assign_expression ADDEQ compare_expression { $$ = ast_binary_right(NODEMGR, ADDEQ, $1, $3); }
+    | assign_expression SUBEQ compare_expression { $$ = ast_binary_right(NODEMGR, SUBEQ, $1, $3); }
+    | assign_expression MULEQ compare_expression { $$ = ast_binary_right(NODEMGR, MULEQ, $1, $3); }
+    | assign_expression DIVEQ compare_expression { $$ = ast_binary_right(NODEMGR, DIVEQ, $1, $3); }
+    | assign_expression MODEQ compare_expression { $$ = ast_binary_right(NODEMGR, MODEQ, $1, $3); }
     ;
 
 compare_expression

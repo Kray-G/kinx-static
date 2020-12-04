@@ -101,6 +101,22 @@ node_t *ast_binary(node_manager_t *mgr, int op, node_t *lhs, node_t *rhs)
     return n;
 }
 
+node_t *ast_binary_right(node_manager_t *mgr, int op, node_t *lhs, node_t *rhs)
+{
+    node_t **p = &lhs;
+    while ((*p)->n.e.binary.rhs) {
+        p = &((*p)->n.e.binary.rhs);
+    }
+    node_t *n = node_new(mgr);
+    n->ntype = EXPR_BINARY;
+    n->vtype = VALTYPE_UNKNOWN;
+    n->n.e.binary.op = op;
+    n->n.e.binary.lhs = *p;
+    n->n.e.binary.rhs = rhs;
+    *p = n;
+    return lhs;
+}
+
 node_t *ast_decl_expression(node_manager_t *mgr, string_t *name, int vtype, node_t *initializer)
 {
     node_t *n = node_new(mgr);

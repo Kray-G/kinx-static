@@ -15,6 +15,7 @@ string_t *string_new_len(char *p, int len)
     s->cap = (((len * 2) / STRING_UNIT) + 1) * STRING_UNIT;
     s->p = (char *)calloc(s->cap, sizeof(char));
     strncpy(s->p, p, len);
+    s->p[len] = 0;
     s->len = len;
     return s;
 }
