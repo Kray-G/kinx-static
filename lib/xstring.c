@@ -30,7 +30,12 @@ string_t *string_new(char *p)
 string_t *string_clear(string_t *s)
 {
     s->len = 0;
+    if (!s->p) {
+        s->cap = STRING_UNIT;
+        s->p = (char *)calloc(STRING_UNIT, sizeof(char));
+    }
     s->p[0] = 0;
+    return s;
 }
 
 void string_free(string_t *s)

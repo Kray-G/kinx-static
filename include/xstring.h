@@ -22,9 +22,4 @@ extern string_t *string_append_char(string_t *dst, char c);
 extern string_t *string_append_str(string_t *dst, string_t *s);
 extern string_t *string_dup(string_t *dst);
 
-typedef struct string_manager_t_ {
-    string_t *s;
-    struct string_manager_t_ *next;
-} string_manager_t;
-
 #endif /* KXS_STRING_H */
