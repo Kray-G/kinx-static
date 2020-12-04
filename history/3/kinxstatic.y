@@ -61,12 +61,12 @@
 %%
 
 program
-    : statement_list
+    : statement_list { $$ = ast_set_root(NODEMGR, $1); }
     ;
 
 statement_list
     : statement
-    | statement_list statement
+    | statement_list statement { $$ = node_connect($1, $2); }
     ;
 
 statement
@@ -82,11 +82,11 @@ statement
     ;
 
 block
-    : '{' statement_list '}' { $$ = $2; }
+    : '{' statement_list '}' { $$ = ast_block_statement(NODEMGR, $2); }
     ;
 
 declaration_statement
-    : var_declaration ';'
+    : var_declaration ';' { $$ = ast_expr_statement(NODEMGR, $1); }
     ;
 
 var_declaration
@@ -95,21 +95,21 @@ var_declaration
 
 declaration_list
     : declaration_expression
-    | declaration_list ',' declaration_expression
+    | declaration_list ',' declaration_expression { $$ = node_connect($1, $3); }
     ;
 
 declaration_expression
-    : NAME type_info_Opt initializer_Opt { $$ = ast_declaration_expression(NODEMGR, $1, $2, $3); }
+    : NAME type_info_Opt initializer_Opt { $$ = ast_decl_expression(NODEMGR, $1, $2, $3); }
     ;
 
 type_info_Opt
-    : /* empty */ { $$ = NODETYPE_INT; }
+    : /* empty */ { $$ = VALTYPE_INT; }
     | ':' type_name { $$ = $2; }
     ;
 
 type_name
-    : INT_TYPE { $$ = NODETYPE_INT; }
-    | DBL_TYPE { $$ = NODETYPE_DBL; }
+    : INT_TYPE { $$ = VALTYPE_INT; }
+    | DBL_TYPE { $$ = VALTYPE_DBL; }
     ;
 
 initializer_Opt
@@ -118,7 +118,7 @@ initializer_Opt
     ;
 
 expression_statement
-    : expression ';'
+    : expression ';' { $$ = ast_expr_statement(NODEMGR, $1); }
     ;
 
 expression
@@ -127,56 +127,56 @@ expression
 
 assign_expression
     : compare_expression
-    | assign_expression '=' compare_expression
-    | assign_expression ADDEQ compare_expression
-    | assign_expression SUBEQ compare_expression
-    | assign_expression MULEQ compare_expression
-    | assign_expression DIVEQ compare_expression
-    | assign_expression MODEQ compare_expression
+    | assign_expression '=' compare_expression { $$ = ast_binary(NODEMGR, '=', $1, $3); }
+    | assign_expression ADDEQ compare_expression { $$ = ast_binary(NODEMGR, ADDEQ, $1, $3); }
+    | assign_expression SUBEQ compare_expression { $$ = ast_binary(NODEMGR, SUBEQ, $1, $3); }
+    | assign_expression MULEQ compare_expression { $$ = ast_binary(NODEMGR, MULEQ, $1, $3); }
+    | assign_expression DIVEQ compare_expression { $$ = ast_binary(NODEMGR, DIVEQ, $1, $3); }
+    | assign_expression MODEQ compare_expression { $$ = ast_binary(NODEMGR, MODEQ, $1, $3); }
     ;
 
 compare_expression
     : add_sub_expression
-    | compare_expression EQEQ add_sub_expression
-    | compare_expression NEQ add_sub_expression
-    | compare_expression '<' add_sub_expression
-    | compare_expression LEQ add_sub_expression
-    | compare_expression '>' add_sub_expression
-    | compare_expression GEQ add_sub_expression
+    | compare_expression EQEQ add_sub_expression { $$ = ast_binary(NODEMGR, EQEQ, $1, $3); }
+    | compare_expression NEQ add_sub_expression { $$ = ast_binary(NODEMGR, NEQ, $1, $3); }
+    | compare_expression '<' add_sub_expression { $$ = ast_binary(NODEMGR, '<', $1, $3); }
+    | compare_expression LEQ add_sub_expression { $$ = ast_binary(NODEMGR, LEQ, $1, $3); }
+    | compare_expression '>' add_sub_expression { $$ = ast_binary(NODEMGR, '>', $1, $3); }
+    | compare_expression GEQ add_sub_expression { $$ = ast_binary(NODEMGR, GEQ, $1, $3); }
     ;
 
 add_sub_expression
     : mul_div_mod_expression
-    | add_sub_expression '+' mul_div_mod_expression
-    | add_sub_expression '-' mul_div_mod_expression
+    | add_sub_expression '+' mul_div_mod_expression { $$ = ast_binary(NODEMGR, '+', $1, $3); }
+    | add_sub_expression '-' mul_div_mod_expression { $$ = ast_binary(NODEMGR, '-', $1, $3); }
     ;
 
 mul_div_mod_expression
     : postfix_expression
-    | mul_div_mod_expression '*' postfix_expression
-    | mul_div_mod_expression '/' postfix_expression
-    | mul_div_mod_expression '%' postfix_expression
+    | mul_div_mod_expression '*' postfix_expression { $$ = ast_binary(NODEMGR, '*', $1, $3); }
+    | mul_div_mod_expression '/' postfix_expression { $$ = ast_binary(NODEMGR, '/', $1, $3); }
+    | mul_div_mod_expression '%' postfix_expression { $$ = ast_binary(NODEMGR, '%', $1, $3); }
     ;
 
 postfix_expression
     : factor
-    | postfix_expression '(' call_argument_list ')'
+    | postfix_expression '(' call_argument_list ')' { $$ = ast_call(NODEMGR, $1, $3); }
     ;
 
 call_argument_list
     : expression
-    | call_argument_list ',' expression
+    | call_argument_list ',' expression { $$ = node_connect($1, $3); }
     ;
 
 factor
-    : NAME { $$ = ast_value_variable(NODEMGR, $1); }
+    : NAME { $$ = ast_variable(NODEMGR, $1); }
     | INT_VALUE { $$ = ast_value_int(NODEMGR, $1); }
     | DBL_VALUE { $$ = ast_value_dbl(NODEMGR, $1); }
     | '(' expression ')' { $$ = $2; }
     ;
 
 if_statement
-    : IF '(' expression ')' statement else_clause_Opt { $$ = ast_if_statement(NODEMGR, $3, $5, $6); }
+    : IF '(' expression ')' statement else_clause_Opt { $$ = ast_branch_statement(NODEMGR, $3, $5, $6); }
     ;
 
 else_clause_Opt
@@ -188,7 +188,7 @@ for_statement
     : FOR
       '(' for_expression1_Opt ';' for_expression2_Opt ';' for_expression2_Opt ')'
       statement
-        { $$ = ast_for_statement(NODEMGR, $3, $5, $7, $9); }
+        { $$ = ast_for_loop_statement(NODEMGR, $3, $5, $7, $9); }
     ;
 
 for_expression1_Opt
@@ -203,11 +203,11 @@ for_expression2_Opt
     ;
 
 while_statement
-    : WHILE '(' expression ')' statement { $$ = ast_while_statement(NODEMGR, $3, $5); }
+    : WHILE '(' expression ')' statement { $$ = ast_precond_loop_statement(NODEMGR, $3, $5); }
     ;
 
 do_while_statement
-    : DO statement WHILE '(' expression ')' ';' { $$ = ast_dowhile_statement(NODEMGR, $5, $2); }
+    : DO statement WHILE '(' expression ')' ';' { $$ = ast_postcond_loop_statement(NODEMGR, $5, $2); }
     ;
 
 return_statement
@@ -215,7 +215,7 @@ return_statement
     ;
 
 if_modifier_Opt
-    : /* empty */
+    : /* empty */ { $$ = NULL; }
     | IF '(' expression ')' { $$ = $3; }
     ;
 
@@ -226,11 +226,11 @@ function_definition
 
 argument_list
     : argument
-    | argument_list ',' argument
+    | argument_list ',' argument { $$ = node_connect($1, $3); }
     ;
 
 argument
-    : NAME type_info_Opt { $$ = ast_declaration_expression(NODEMGR, $1, $2, NULL); }
+    : NAME type_info_Opt { $$ = ast_decl_expression(NODEMGR, $1, $2, NULL); }
     ;
 
 %%
