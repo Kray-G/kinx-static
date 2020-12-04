@@ -1,6 +1,6 @@
 LIBDIR=..\..\lib
 INCDIR=..\..\include
-LIBOBJS=xstring.obj
+LIBOBJS=xstring.obj xstring_set.obj
 OBJS=main.obj kxs.tab.obj lexer.obj ast_node.obj $(LIBOBJS)
 CC=cl
 CFLAGS=/c /O2 /DYYDEBUG=1 -I$(INCDIR)
@@ -32,3 +32,6 @@ main.obj: main.c lexer.h kxs.tab.h
 
 xstring.obj: $(LIBDIR)\xstring.c $(INCDIR)\xstring.h
 	$(CC) $(CFLAGS) $(LIBDIR)\xstring.c
+
+xstring_set.obj: $(LIBDIR)\xstring_set.c $(INCDIR)\xstring_set.h
+	$(CC) $(CFLAGS) $(LIBDIR)\xstring_set.c

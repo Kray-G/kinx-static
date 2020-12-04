@@ -19,6 +19,24 @@ void string_set_dump(int indent, string_set_node_t *p)
     string_set_dump(indent + 1, p->right);
 }
 
+void string_set_free_node(string_set_node_t *p)
+{
+    if (!p) return;
+    string_set_free_node(p->left);
+    string_set_free_node(p->right);
+    free(p->key);
+    free(p);
+}
+
+void string_set_free_all(string_set_t *sset)
+{
+    for (int i = 0; i < STRING_SET_HASHSIZE; i++) {
+        if (sset->hashtable[i]) {
+            string_set_free_node(sset->hashtable[i]);
+        }
+    }
+}
+
 static char *string_set_search_str(string_set_t *sset, char *s)
 {
     int cmp;
@@ -46,7 +64,7 @@ static string_t *string_set_search_impl(string_set_t *sset, string_t *s, int ins
     string_set_node_t *q;
 
     p = &(sset->hashtable[string_set_hash(s->p)]);
-    while (*p && (*p)->key && (cmp = strcmp(s->p, (*p)->key->p)) != 0) {
+    while (*p && (cmp = strcmp(s->p, (*p)->key->p)) != 0) {
         if (cmp < 0) {
             p = &((*p)->left);
         } else {
@@ -64,11 +82,11 @@ static string_t *string_set_search_impl(string_set_t *sset, string_t *s, int ins
     if ((q = malloc(sizeof *q)) == NULL) {
         exit(1);
     }
-    q->key = s;
+    q->key = string_dup(s);
     q->left = NULL;
     q->right = *p;
     *p = q;
-    return s;
+    return q->key;
 }
 
 string_t *string_set_search(string_set_t *sset, string_t *s)

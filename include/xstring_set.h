@@ -19,4 +19,10 @@ typedef struct string_set_t_ {
     int count;
 } string_set_t;
 
+extern void string_set_dump(int indent, string_set_node_t *p);
+extern void string_set_free_node(string_set_node_t *p);
+extern void string_set_free_all(string_set_t *sset);
+extern string_t *string_set_search(string_set_t *sset, string_t *s);
+extern string_t *string_set_insert(string_set_t *sset, string_t *s);
+
 #endif /* KXS_STRING_SET_H */
