@@ -59,9 +59,7 @@ TOP:;
     }
     case EXPR_CALL: {
         printf("[call]\n");
-        SHOW_INDENT(indent + 1);
-        printf("[func]\n");
-        ast_dump_item(indent + 2, node->n.e.call.func);
+        ast_dump_item(indent + 1, node->n.e.call.func);
         SHOW_INDENT(indent + 1);
         printf("[args]\n");
         ast_dump_item(indent + 2, node->n.e.call.args);
@@ -161,10 +159,8 @@ TOP:;
         break;
     }
     case STMT_FUNC: {
-        printf("[function]\n", node->n.s.func.name->p);
-        SHOW_INDENT(indent + 1);
-        printf("[args]\n");
-        ast_dump_item(indent + 2, node->n.s.func.args);
+        printf("[function-definition]\n", node->n.s.func.name->p);
+        ast_dump_item(indent + 1, node->n.s.func.args);
         ast_dump_item(indent + 1, node->n.s.func.block);
         CHECKNEXT(node);
         break;
