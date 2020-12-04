@@ -46,15 +46,15 @@ TOP:;
     switch (node->ntype) {
     /* dump expression. */
     case EXPR_INT: {
-        printf("[value:int] %lld\n", node->n.ivalue);
+        printf("%lld: int\n", node->n.ivalue);
         break;
     }
     case EXPR_DBL: {
-        printf("[value:dbl] %f\n", node->n.dvalue);
+        printf("%f: dbl\n", node->n.dvalue);
         break;
     }
     case EXPR_VAR: {
-        printf("[var:%s] %s\n", get_type_name(node->vtype), node->n.name->p);
+        printf("%s: %s\n", node->n.name->p, get_type_name(node->vtype));
         break;
     }
     case EXPR_CALL: {
@@ -71,7 +71,7 @@ TOP:;
         break;
     }
     case EXPR_BINARY: {
-        printf("[operation] %s\n", get_operator_name(node->n.e.binary.op));
+        printf("%s\n", get_operator_name(node->n.e.binary.op));
         ast_dump_item(indent + 1, node->n.e.binary.lhs);
         ast_dump_item(indent + 1, node->n.e.binary.rhs);
         break;
@@ -79,7 +79,7 @@ TOP:;
     case EXPR_DECL: {
         printf("[declaration]\n");
         SHOW_INDENT(indent + 1);
-        printf("[var:%s] %s\n", get_type_name(node->vtype), node->n.e.decl.name->p);
+        printf("%s: %s\n", node->n.e.decl.name->p, get_type_name(node->vtype));
         ast_dump_item(indent + 2, node->n.e.decl.initializer);
         if (node->next) {
             ast_dump_item(indent, node->next);
