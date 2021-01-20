@@ -1,3 +1,9 @@
+**IMPORTANT**
+
+* This project has been moved to [KiSS](https://github.com/Kray-G/kiss) and [KiSS History](https://github.com/Kray-G/kiss-history).
+
+---
+
 # Kinx-Static
 
 This is a trial project using MIR. The target is a statically typed language which has a similar syntax with Kinx.
